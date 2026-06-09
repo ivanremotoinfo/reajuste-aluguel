@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reajuste de Aluguel | SuporteADV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; padding: 24px 16px; }
+  .container { max-width: 700px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+  h1 { font-size: 1.5rem; color: #008080; margin-bottom: 6px; }
+  .subtitle { font-size: 0.88rem; color: #888; line-height: 1.5; }
+  .brand { font-size: 0.78rem; margin-top: 8px; color: #555; }
+  .brand span.s { color: #8B00FF; font-weight: 700; }
+  .brand span.a { color: #008080; font-weight: 700; }
+
+  .card { background: #111; border-radius: 10px; border: 1px solid #222; border-left: 3px solid #8B00FF; padding: 20px 22px; margin-bottom: 14px; transition: border-left-color 0.2s; }
+  .card:hover { border-left-color: #008080; }
+  .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+  .field.full { grid-column: 1 / -1; }
+
+  .field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #333; border-radius: 6px;
+    font-size: 0.95rem; color: #fff; background: #1a1a1a; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 2px rgba(0,128,128,0.2); }
+  .field select option { background: #1a1a1a; }
+
+  .info-box { background: #0d1a1a; border: 1px solid #1a3a3a; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem; color: #666; line-height: 1.6; }
+  .info-box b { color: #008080; }
+
+  button.calcular {
+    background: #008080; color: #fff; border: none; padding: 10px 26px;
+    border-radius: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.07em;
+    cursor: pointer; transition: background 0.18s, box-shadow 0.18s; text-transform: uppercase;
+  }
+  button.calcular:hover { background: #006666; box-shadow: 0 0 10px rgba(0,128,128,0.4); }
+  button.calcular:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  .loading { display: none; align-items: center; gap: 8px; color: #008080; font-size: 0.85rem; margin-left: 12px; }
+  .loading.visible { display: flex; }
+  .spinner { width: 16px; height: 16px; border: 2px solid #333; border-top-color: #008080; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .resultado { background: #0a1a0a; border: 1px solid #1a4a1a; border-radius: 10px; padding: 20px 22px; margin-top: 14px; display: none; }
+  .resultado.visible { display: block; }
+  .resultado-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .comparativo { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 16px; }
+  .comp-box { background: #111; border-radius: 8px; border: 1px solid #222; padding: 14px; text-align: center; }
+  .comp-box label { display: block; font-size: 0.72rem; color: #555; text-transform: uppercase; margin-bottom: 6px; }
+  .comp-box .cv { font-size: 1.2rem; font-weight: 700; font-family: 'Courier New', monospace; }
+  .comp-box .cv.verde { color: #00ff00; }
+  .comp-box .cv.teal { color: #008080; }
+  .comp-seta { font-size: 1.5rem; color: #008080; text-align: center; }
+
+  .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .res-grid { grid-template-columns: 1fr 1fr; } }
+
+  .res-item label { display: block; font-size: 0.72rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .res-item .valor { font-size: 1.05rem; font-weight: 700; color: #00ff00; font-family: 'Courier New', monospace; }
+  .res-item .valor.sec { color: #888; font-size: 0.95rem; }
+
+  .divider { border: none; border-top: 1px solid #1a3a1a; margin: 14px 0; }
+
+  .detalhe-wrap { margin-top: 14px; }
+  .detalhe-wrap summary { cursor: pointer; color: #008080; font-size: 0.82rem; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; color: #555; padding: 6px 8px; border-bottom: 1px solid #222; font-size: 0.72rem; text-transform: uppercase; }
+  td { color: #999; padding: 6px 8px; border-bottom: 1px solid #1a1a1a; }
+  tr:hover td { background: #151515; }
+  td.dest { color: #00ff00; font-weight: 700; font-family: 'Courier New', monospace; }
+
+  .erro { background: #1a0a0a; border: 1px solid #4a1a1a; border-radius: 8px; padding: 14px 16px; color: #ff6666; font-size: 0.88rem; margin-top: 14px; display: none; }
+  .erro.visible { display: block; }
+  .aviso { font-size: 0.72rem; color: #444; margin-top: 12px; line-height: 1.5; }
+
+  /* Projeção mensal */
+  .projecao-wrap { margin-top: 14px; }
+  .projecao-wrap summary { cursor: pointer; color: #008080; font-size: 0.82rem; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Reajuste de Aluguel</h1>
+    <p class="subtitle">Calcule o reajuste do aluguel pelos índices IGP-M, IPCA ou INPC com dados oficiais do Banco Central.</p>
+    <p class="brand"><span class="s">suporte</span><span class="a">ADV</span>.br — Ferramentas para Advogados</p>
+  </div>
+
+  <div class="card">
+    <div class="info-box">
+      <b>Como funciona?</b> Informe o valor atual do aluguel, o índice previsto em contrato e o período de reajuste (geralmente 12 meses). O sistema calcula o novo valor com base nos índices oficiais acumulados no período.
+    </div>
+    <div class="card-label">Dados do Contrato</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Valor atual do aluguel (R$)</label>
+        <input type="number" id="valorAluguel" placeholder="Ex: 1500,00" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Índice de reajuste</label>
+        <select id="indice">
+          <option value="189">IGP-M — FGV (mais comum)</option>
+          <option value="433">IPCA — IBGE</option>
+          <option value="188">INPC — IBGE</option>
+          <option value="7478">IPCA-E — IBGE</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Data de início do período</label>
+        <input type="month" id="dataInicio">
+      </div>
+      <div class="field">
+        <label>Data de reajuste (fim do período)</label>
+        <input type="month" id="dataFim">
+      </div>
+      <div class="field full">
+        <label>Percentual de reajuste contratual (%) — opcional</label>
+        <input type="number" id="pctContratual" placeholder="Deixe em branco para usar o índice integral" step="0.01" min="0">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+      <button class="calcular" id="btnCalc" onclick="calcular()">CALCULAR</button>
+      <div class="loading" id="loading"><div class="spinner"></div><span>Consultando Banco Central...</span></div>
+    </div>
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="resultado" id="resultado">
+    <div class="resultado-titulo">Resultado do Reajuste</div>
+
+    <div class="comparativo">
+      <div class="comp-box">
+        <label>Aluguel atual</label>
+        <div class="cv teal" id="res-atual">—</div>
+      </div>
+      <div class="comp-seta">→</div>
+      <div class="comp-box">
+        <label>Novo aluguel</label>
+        <div class="cv verde" id="res-novo">—</div>
+      </div>
+    </div>
+
+    <div class="res-grid">
+      <div class="res-item">
+        <label>Índice acumulado</label>
+        <div class="valor" id="res-indice">—</div>
+      </div>
+      <div class="res-item">
+        <label>Aumento em R$</label>
+        <div class="valor" id="res-aumento">—</div>
+      </div>
+      <div class="res-item">
+        <label>Período</label>
+        <div class="valor sec" id="res-periodo">—</div>
+      </div>
+      <div class="res-item">
+        <label>Índice utilizado</label>
+        <div class="valor sec" id="res-indice-nome">—</div>
+      </div>
+      <div class="res-item">
+        <label>Aluguel anual atual</label>
+        <div class="valor sec" id="res-anual-atual">—</div>
+      </div>
+      <div class="res-item">
+        <label>Aluguel anual novo</label>
+        <div class="valor sec" id="res-anual-novo">—</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <details class="projecao-wrap">
+      <summary>Ver projeção dos próximos 12 meses</summary>
+      <table>
+        <thead><tr><th>Mês</th><th>Competência</th><th>Valor do aluguel</th></tr></thead>
+        <tbody id="tabela-projecao"></tbody>
+      </table>
+    </details>
+
+    <details class="detalhe-wrap">
+      <summary>Ver índices mês a mês do período</summary>
+      <table>
+        <thead><tr><th>Mês/Ano</th><th>Variação %</th><th>Acumulado %</th></tr></thead>
+        <tbody id="tabela-indices"></tbody>
+      </table>
+    </details>
+
+    <p class="aviso">⚠️ Dados obtidos do Banco Central do Brasil em tempo real. Alguns contratos preveem reajuste pelo IGP-M com limitação de percentual — verifique a cláusula contratual. Fonte: SGS/BCB.</p>
+  </div>
+
+</div>
+
+<script>
+const nomeIndices = {
+  '189': 'IGP-M (FGV)',
+  '433': 'IPCA (IBGE)',
+  '188': 'INPC (IBGE)',
+  '7478': 'IPCA-E (IBGE)',
+};
+
+function fmtMoeda(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtPct(v) {
+  return (v >= 0 ? '+' : '') + v.toFixed(4).replace('.', ',') + '%';
+}
+function fmtMes(str) {
+  const [ano, mes] = str.split('-');
+  const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${nomes[parseInt(mes)-1]}/${ano}`;
+}
+
+function showErro(msg) {
+  document.getElementById('erro').textContent = msg;
+  document.getElementById('erro').classList.add('visible');
+  document.getElementById('resultado').classList.remove('visible');
+}
+function hideErro() { document.getElementById('erro').classList.remove('visible'); }
+
+async function fetchIndice(codigo, dtIni, dtFim) {
+  const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${codigo}/dados?formato=json&dataInicial=${fmt(dtIni)}&dataFinal=${fmt(dtFim)}`;
+  const proxies = [
+    async () => { const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`); if(!r.ok) throw 0; const j=await r.json(); return j.contents?JSON.parse(j.contents):j; },
+    async () => { const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`); if(!r.ok) throw 0; const j=await r.json(); return j.contents?JSON.parse(j.contents):j; },
+  ];
+  for (const fn of proxies) {
+    try { const d = await fn(); if(Array.isArray(d)&&d.length>0) return d; } catch(_) {}
+  }
+  throw new Error('Não foi possível buscar os índices do Banco Central.');
+}
+
+async function calcular() {
+  hideErro();
+  const valor = parseFloat(document.getElementById('valorAluguel').value);
+  if (!valor || valor <= 0) return showErro('Informe o valor atual do aluguel.');
+
+  const dataIniStr = document.getElementById('dataInicio').value;
+  const dataFimStr = document.getElementById('dataFim').value;
+  if (!dataIniStr || !dataFimStr) return showErro('Informe as datas de início e fim do período.');
+  if (dataIniStr >= dataFimStr) return showErro('A data de início deve ser anterior à data de reajuste.');
+
+  const indice = document.getElementById('indice').value;
+  const pctContratual = parseFloat(document.getElementById('pctContratual').value);
+
+  const [anoIni, mesIni] = dataIniStr.split('-').map(Number);
+  const [anoFim, mesFim] = dataFimStr.split('-').map(Number);
+  const dtIni = new Date(anoIni, mesIni - 1, 1);
+  const dtFim = new Date(anoFim, mesFim - 1, 1);
+
+  const btn = document.getElementById('btnCalc');
+  const loading = document.getElementById('loading');
+  btn.disabled = true;
+  loading.classList.add('visible');
+
+  try {
+    const dados = await fetchIndice(indice, dtIni, dtFim);
+    if (!dados || dados.length === 0) throw new Error('Sem dados para o período. Verifique as datas.');
+
+    // Calcula fator acumulado
+    let fator = 1;
+    let acumulado = 0;
+    const linhas = [];
+    dados.forEach(item => {
+      const v = parseFloat(item.valor.replace(',', '.'));
+      fator *= (1 + v / 100);
+      acumulado += v;
+      linhas.push({ data: item.data, variacao: v, acumulado });
+    });
+
+    // Aplica percentual contratual se informado
+    let pctFinal = (fator - 1) * 100;
+    if (!isNaN(pctContratual) && pctContratual > 0) {
+      pctFinal = Math.min(pctFinal, pctContratual);
+    }
+
+    const novoValor = valor * (1 + pctFinal / 100);
+    const aumento = novoValor - valor;
+
+    // Resultado
+    document.getElementById('res-atual').textContent = fmtMoeda(valor);
+    document.getElementById('res-novo').textContent = fmtMoeda(novoValor);
+    document.getElementById('res-indice').textContent = fmtPct(pctFinal);
+    document.getElementById('res-aumento').textContent = fmtMoeda(aumento);
+    document.getElementById('res-periodo').textContent = `${dados.length} meses`;
+    document.getElementById('res-indice-nome').textContent = nomeIndices[indice];
+    document.getElementById('res-anual-atual').textContent = fmtMoeda(valor * 12);
+    document.getElementById('res-anual-novo').textContent = fmtMoeda(novoValor * 12);
+
+    // Projeção 12 meses
+    const tbodyProj = document.getElementById('tabela-projecao');
+    tbodyProj.innerHTML = '';
+    const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(anoFim, mesFim - 1 + i, 1);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i + 1}º mês</td>
+        <td>${mesesNomes[d.getMonth()]}/${d.getFullYear()}</td>
+        <td class="dest">${fmtMoeda(novoValor)}</td>`;
+      tbodyProj.appendChild(tr);
+    }
+
+    // Tabela índices
+    const tbodyIdx = document.getElementById('tabela-indices');
+    tbodyIdx.innerHTML = '';
+    linhas.forEach(l => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${l.data}</td>
+        <td>${fmtPct(l.variacao)}</td>
+        <td class="dest">${fmtPct(l.acumulado)}</td>`;
+      tbodyIdx.appendChild(tr);
+    });
+
+    document.getElementById('resultado').classList.add('visible');
+
+  } catch(e) {
+    showErro(e.message || 'Erro ao calcular. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    loading.classList.remove('visible');
+  }
+}
+
+// Datas padrão: últimos 12 meses
+const hoje = new Date();
+const ini = new Date(hoje.getFullYear() - 1, hoje.getMonth(), 1);
+document.getElementById('dataInicio').value = `${ini.getFullYear()}-${String(ini.getMonth()+1).padStart(2,'0')}`;
+document.getElementById('dataFim').value = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const f = document.activeElement;
+    if (f && (f.tagName === 'INPUT' || f.tagName === 'SELECT')) calcular();
+  }
+});
+</script>
+</body>
+</html>
